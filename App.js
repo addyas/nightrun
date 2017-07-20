@@ -1,17 +1,38 @@
 import React, { Component } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
-import { Constants, MapView } from 'expo';
+import { Constants, MapView, Location, Permissions } from 'expo';
 
 export default class App extends Component {
   state = {
-    mapRegion: { latitude: 37.78825, longitude: -122.4324, latitudeDelta: 0.0922, longitudeDelta: 0.0421 },
-    locationResult: null
+    //mapRegion: { latitude: 37.78825, longitude: -122.4324, latitudeDelta: 0.0922, longitudeDelta: 0.0421 },
+    errorMessage: null,
+    location: {coords: {latitude: 0, longitude:0}},
   };
 
-  _handleMapRegionChange = mapRegion => {
-    this.setState({ mapRegion });
+  componentWillMount(){
+    this._watchLocationAsync();
+  }
+
+  _watchLocationAsync = async () => {
+    let {status} = await Permissions.askAsync(Permissions.LOCATION);
+    if(status !== 'granted'){
+      this.setState({errorMessage: 'Permission to access location denied',
+      });
+    }
+
+    let location = await Location.watchPositionAsync(GEO_OPTIONS, this.locationChanged);
+
   };
 
+  locationChanged = (location) => {
+    region = {
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.025,
+    },
+    this.setState({location, region});
+  }
 
   render() {
     return (
@@ -19,8 +40,8 @@ export default class App extends Component {
 
         <MapView
           style={styles.container}
-          region={this.state.mapRegion}
-          onRegionChange={this._handleMapRegionChange}
+          region={this.state.region}
+          showsUserLocation={true}
           customMapStyle={mapStyle}
         />
 
@@ -28,6 +49,8 @@ export default class App extends Component {
     );
   }
 }
+
+const GEO_OPTIONS = {enableHighAccuracy: true, timeInterval: 2000};
 
 const styles = StyleSheet.create({
   container: {
