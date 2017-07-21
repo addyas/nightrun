@@ -7,6 +7,53 @@ export default class App extends Component {
     //mapRegion: { latitude: 37.78825, longitude: -122.4324, latitudeDelta: 0.0922, longitudeDelta: 0.0421 },
     errorMessage: null,
     location: {coords: {latitude: 0, longitude:0}},
+    region: {
+      latitude: 0,
+      longitude: 0,
+      latitudeDelta: 0.025,
+      longitudeDelta: 0.0125,
+    },
+    markers: [{
+      title: 'Night Run',
+      description: "Get here, before it's too late.",
+      coordinate: {
+        latitude: 0,
+        longitude: 0,
+       },
+      },
+      {
+        title: 'Clue',
+        description: "Find the Night Watcher.",
+        coordinate: {
+          latitude: 0,
+          longitude: 0,
+        },
+
+      },
+      {
+        title: 'Escape',
+        description: "The dark rajin have been unleashed. Flee the red.",
+        coordinate: {
+          latitude: 0,
+          longitude: 0,
+        },
+      },
+      {
+        title: 'Supplies',
+        description: "Survive the night.",
+        coordinate: {
+          latitude: 0,
+          longitude: 0,
+        },
+      },
+      {
+        title: 'Fight Crime',
+        description: "Do the job your father can't.",
+        coordinate: {
+          latitude: 0,
+          longitude: 0,
+        },
+      }],
   };
 
   componentWillMount(){
@@ -25,14 +72,55 @@ export default class App extends Component {
   };
 
   locationChanged = (location) => {
+    let markers = this.state.markers.map((marker) => {
+      let tempMarker = marker;
+      tempMarker.coordinate = this.randomGeo(location.coords, 2000);//2000m
+      return tempMarker;
+   });
     region = {
       latitude: location.coords.latitude,
       longitude: location.coords.longitude,
       latitudeDelta: 0.05,
       longitudeDelta: 0.025,
     },
-    this.setState({location, region});
+    this.setState({location, region, markers});
   }
+
+  randomGeo = (center, radius) => {
+    var y0 = center.latitude;
+    var x0 = center.longitude;
+    var rd = radius / 111300;
+
+    var u = Math.random();
+    var v = Math.random();
+
+    var w = rd * Math.sqrt(u);
+    var t = 2 * Math.PI * v;
+    var x = w * Math.cos(t);
+    var y = w * Math.sin(t);
+
+    return {
+        'latitude': y + y0,
+        'longitude': x + x0
+    };
+}
+
+  distance = (lat1, lon1, lat2, lon2) => {
+  var p = 0.017453292519943295;    // Math.PI / 180
+  var c = Math.cos;
+  var a = 0.5 - c((lat2 - lat1) * p)/2 +
+          c(lat1 * p) * c(lat2 * p) *
+          (1 - c((lon2 - lon1) * p))/2;
+
+  return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+}
+
+  /*renderMarkers(){
+    return(
+
+
+    );
+  }*/
 
   render() {
     return (
@@ -42,8 +130,16 @@ export default class App extends Component {
           style={styles.container}
           region={this.state.region}
           showsUserLocation={true}
-          customMapStyle={mapStyle}
-        />
+          customMapStyle={mapStyle}>
+
+            {this.state.markers.map( (marker) => (
+              <MapView.Marker
+                title={marker.title}
+                description={marker.description}
+                coordinate={marker.coordinate}
+              />
+            ))}
+        </MapView>
 
 
     );
